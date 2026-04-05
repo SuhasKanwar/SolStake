@@ -1,9 +1,9 @@
 use anchor_lang::prelude::*;
 
-declare_id!("DiSkdsHWGxLR6strWwvhvVycGXNRV4nymGX6hKn1E96q");
+declare_id!("33vQPdG6AQCQ5QGHQjqJra49n4a64PjZLEYgEXdX6T39");
 
 #[program]
-pub mod sol_stake {
+pub mod contract {
     use super::*;
 
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
