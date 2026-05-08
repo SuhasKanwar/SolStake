@@ -1,9 +1,62 @@
 @import "tailwindcss";
 
 :root {
-  --primary-color: #bfdbf7;
-  --secondary-color: #022b3a;
-  --primary-button-color: #deeb2f;
-  --darker-primary-button-color: #fc7a1e;
-  --secondary-button-color: #cd262b;
+  --primary-color: #2b1845;
+  --secondary-color: #1a0f2e;
+  --primary-button-color: #f3c815;
+  --darker-primary-button-color: #ff8a2b;
+  --secondary-button-color: #c7272c;
+
+  --bg-gradient-from: #3a255a;
+  --bg-gradient-to: #23133e;
+  --card-surface: #250b45;
+  --card-surface-2: #1b0633;
+
+  --text-muted: rgba(255, 255, 255, 0.85);
+  --card-shadow: rgba(0, 0, 0, 0.35);
+
+  --font-display: "Luckiest Guy", system-ui, -apple-system, Segoe UI, Roboto, Arial,
+    "Noto Sans", "Liberation Sans", sans-serif;
+  --font-body: "Baloo 2", system-ui, -apple-system, Segoe UI, Roboto, Arial,
+    "Noto Sans", "Liberation Sans", sans-serif;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+button {
+  cursor: pointer;
+}
+
+@keyframes secondary-stripes-ltr {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 120px 0;
+  }
+}
+
+.btn-secondary-animated {
+  background-image: none;
+}
+
+.btn-secondary-animated:hover {
+  background-image: repeating-linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.1) 0px,
+    rgba(255, 255, 255, 0.1) 14px,
+    rgba(255, 255, 255, 0) 14px,
+    rgba(255, 255, 255, 0) 34px
+  );
+  background-size: 120px 120px;
+  background-repeat: repeat;
+  will-change: background-position;
+  animation: secondary-stripes-ltr 380ms linear infinite;
 }
