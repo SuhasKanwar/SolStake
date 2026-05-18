@@ -7,17 +7,18 @@ pub mod utils;
 pub mod instructions;
 pub mod state;
 
+use instructions::*;
+
 declare_id!("33vQPdG6AQCQ5QGHQjqJra49n4a64PjZLEYgEXdX6T39");
 
 #[program]
 pub mod contract {
     use super::*;
-
     pub fn initialize(ctx: Context<Initialize>) -> Result<()> {
-        msg!("Greetings from: {:?}", ctx.program_id);
-        Ok(())
+        instructions::initialize::handler(ctx)
+    }
+
+    pub fn deposit_treasury(ctx: Context<DepositTreasury>, amount: u64) -> Result<()> {
+        instructions::deposit_treasury::handler(ctx, amount)
     }
 }
-
-#[derive(Accounts)]
-pub struct Initialize {}
