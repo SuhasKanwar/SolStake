@@ -6,6 +6,7 @@ pub struct State {
     pub treasury_bump: u8,
     pub paused: bool,
     pub game_counter: u64,
+    pub locked_liquidity: u64,
 }
 
 impl State {
@@ -14,5 +15,6 @@ impl State {
         32 +
         1 +
         1 +
+        8 +
         8;
 }

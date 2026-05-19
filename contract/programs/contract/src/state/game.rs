@@ -10,6 +10,7 @@ pub struct Game {
     pub settled: bool,
     pub randomness: [u8; 32],
     pub created_at: i64,
+    pub max_payout: u64,
 }
 
 impl Game {
@@ -22,5 +23,6 @@ impl Game {
         1 +
         1 +
         32 +
+        8 +
         8;
 }

@@ -22,4 +22,22 @@ pub enum SolStakeError {
 
     #[msg("Program paused")]
     ProgramPaused,
+
+    #[msg("Invalid bet choice")]
+    InvalidChoice,
+
+    #[msg("Arithmetic overflow")]
+    MathOverflow,
+
+    #[msg("Randomness has not been fulfilled yet")]
+    RandomnessNotFulfilled,
+
+    #[msg("Invalid randomness account")]
+    InvalidRandomnessAccount,
+
+    #[msg("Invalid treasury account")]
+    InvalidTreasury,
+
+    #[msg("No withdrawable profit")]
+    NoProfit,
 }

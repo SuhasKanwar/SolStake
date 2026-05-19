@@ -8,6 +8,7 @@ pub fn handler(ctx: Context<Initialize>) -> Result<()> {
     state.treasury_bump = ctx.bumps.treasury;
     state.paused = false;
     state.game_counter = 0;
+    state.locked_liquidity = 0;
     Ok(())
 }
 

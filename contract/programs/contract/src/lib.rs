@@ -6,6 +6,7 @@ pub mod events;
 pub mod utils;
 pub mod instructions;
 pub mod state;
+pub mod security;
 
 use instructions::*;
 
@@ -20,5 +21,17 @@ pub mod contract {
 
     pub fn deposit_treasury(ctx: Context<DepositTreasury>, amount: u64) -> Result<()> {
         instructions::deposit_treasury::handler(ctx, amount)
+    }
+
+    pub fn start_game(ctx: Context<StartGame>, amount: u64, choice: bool, mode: u8) -> Result<()> {
+        instructions::start_game::handler(ctx, amount, choice, mode)
+    }
+
+    pub fn settle_game(ctx: Context<SettleGame>) -> Result<()> {
+        instructions::settle_game::handler(ctx)
+    }
+
+    pub fn withdraw_profit(ctx: Context<WithdrawProfit>, amount: u64) -> Result<()> {
+        instructions::withdraw_profit::handler(ctx, amount)
     }
 }

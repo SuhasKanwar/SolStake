@@ -22,6 +22,7 @@ custom-panic = []
 
 [dependencies]
 anchor-lang = "0.32.1"
+orao-solana-vrf = { version = "0.7.0", default-features = false, features = ["cpi"] }
 
 
 [lints.rust]
