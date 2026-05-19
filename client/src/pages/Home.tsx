@@ -104,7 +104,23 @@ export default function HomePage() {
                 setStatus(`You lost ${selectedStake} SOL. Better luck next time!`);
             }
         } catch (err) {
-            const message = err instanceof Error ? err.message : "Transaction failed";
+            console.error("Flip game error caught:", err);
+            let message = "Transaction failed";
+            if (err instanceof Error) {
+                message = err.message;
+                if ("logs" in err && Array.isArray((err as any).logs)) {
+                    console.error("SendTransactionError logs:", (err as any).logs);
+                    message += ` (Logs: ${(err as any).logs.slice(0, 5).join(" | ")})`;
+                } else if (typeof (err as any).getLogs === "function") {
+                    try {
+                        const logs = (err as any).getLogs();
+                        console.error("getLogs():", logs);
+                        message += ` (Logs: ${logs.slice(0, 5).join(" | ")})`;
+                    } catch (e) { }
+                }
+            } else if (typeof err === "object" && err !== null) {
+                message = JSON.stringify(err);
+            }
             setError(message);
             setStatus("Ready to flip again.");
         } finally {

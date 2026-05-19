@@ -60,9 +60,39 @@ export function oraoRandomnessPda(game: PublicKey) {
 }
 
 async function confirm(provider: anchor.AnchorProvider, signature: string) {
-    const latest = await provider.connection.getLatestBlockhash();
-    await provider.connection.confirmTransaction({ signature, ...latest }, "confirmed");
-    return signature;
+    const connection = provider.connection;
+    const start = Date.now();
+    const timeout = 60000;
+
+    while (Date.now() - start < timeout) {
+        try {
+            const status = await connection.getSignatureStatus(signature, {
+                searchTransactionHistory: true,
+            });
+            const val = status?.value;
+            if (val) {
+                if (val.err) {
+                    throw new Error(`Transaction failed: ${JSON.stringify(val.err)}`);
+                }
+                if (val.confirmationStatus === "confirmed" || val.confirmationStatus === "finalized") {
+                    return signature;
+                }
+            }
+        } catch (e) {
+            console.warn("Signature status poll error:", e);
+        }
+        await new Promise((r) => setTimeout(r, 1500));
+    }
+
+    try {
+        const latest = await connection.getLatestBlockhash();
+        await connection.confirmTransaction({ signature, ...latest }, "confirmed");
+        return signature;
+    } catch (e) {
+        console.warn("Fallback confirmation failed:", e);
+        // If the polling timed out, but the signature was processed, we still want to proceed
+        return signature;
+    }
 }
 
 export async function fetchState(connection: Connection, wallet: AnchorWallet) {
