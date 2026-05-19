@@ -18,8 +18,19 @@ const PROVIDER_URLS = {
 const SOLANA_NETWORK: "MAINNET" | "DEVNET" = import.meta.env.VITE_SOLANA_NETWORK ?? "DEVNET";
 export const PROVIDER_URL = PROVIDER_URLS[SOLANA_NETWORK];
 
-export const PROGRAM_ID = new PublicKey(
-    import.meta.env.VITE_PROGRAM_ID ?? "33vQPdG6AQCQ5QGHQjqJra49n4a64PjZLEYgEXdX6T39",
+function publicKeyFromEnv(value: string | undefined, fallback: string) {
+    const candidate = value?.trim() || fallback;
+    try {
+        return new PublicKey(candidate);
+    } catch {
+        console.warn(`Invalid VITE_PROGRAM_ID "${value}", using deployed default ${fallback}`);
+        return new PublicKey(fallback);
+    }
+}
+
+export const PROGRAM_ID = publicKeyFromEnv(
+    import.meta.env.VITE_PROGRAM_ID,
+    "33vQPdG6AQCQ5QGHQjqJra49n4a64PjZLEYgEXdX6T39",
 );
 
 export const ORAO_VRF_PROGRAM_ID = new PublicKey("VRFzZoJdhFWL8rkvu87LpKM3RbcVezpMEc6X5GVDr7y");
