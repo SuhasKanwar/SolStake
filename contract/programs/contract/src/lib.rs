@@ -3,10 +3,10 @@ use anchor_lang::prelude::*;
 pub mod constants;
 pub mod errors;
 pub mod events;
-pub mod utils;
 pub mod instructions;
-pub mod state;
 pub mod security;
+pub mod state;
+pub mod utils;
 
 use instructions::*;
 
