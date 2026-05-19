@@ -84,6 +84,13 @@ export async function initializeTreasury(connection: Connection, wallet: AnchorW
     return confirm(program.provider as anchor.AnchorProvider, signature);
 }
 
+async function ensureInitialized(connection: Connection, wallet: AnchorWallet) {
+    const state = await fetchState(connection, wallet);
+    if (!state) {
+        await initializeTreasury(connection, wallet);
+    }
+}
+
 export async function depositTreasury(connection: Connection, wallet: AnchorWallet, solAmount: number) {
     const program = getProgram(connection, wallet);
     const lamports = new anchor.BN(Math.round(solAmount * anchor.web3.LAMPORTS_PER_SOL));
@@ -105,6 +112,8 @@ export async function startGame(
     choice: CoinChoice,
     mode: GameMode,
 ) {
+    await ensureInitialized(connection, wallet);
+
     const program = getProgram(connection, wallet);
     const state = await program.account.state.fetch(statePda());
     const game = gamePda(wallet.publicKey, state.gameCounter);
