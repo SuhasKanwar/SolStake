@@ -1,0 +1,1113 @@
+/**
+ * Program IDL in camelCase format in order to be used in JS/TS.
+ *
+ * Note that this is only a type helper and is not the actual IDL. The original
+ * IDL can be found at `target/idl/contract.json`.
+ */
+export type Contract = {
+  "address": "33vQPdG6AQCQ5QGHQjqJra49n4a64PjZLEYgEXdX6T39",
+  "metadata": {
+    "name": "contract",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "A solana contract which is used for staking"
+  },
+  "instructions": [
+    {
+      "name": "depositTreasury",
+      "discriminator": [
+        2,
+        129,
+        72,
+        214,
+        50,
+        94,
+        151,
+        230
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "initialize",
+      "discriminator": [
+        175,
+        175,
+        109,
+        31,
+        13,
+        152,
+        155,
+        237
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "settleGame",
+      "discriminator": [
+        96,
+        54,
+        24,
+        189,
+        239,
+        198,
+        86,
+        29
+      ],
+      "accounts": [
+        {
+          "name": "state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "writable": true
+        },
+        {
+          "name": "player",
+          "writable": true,
+          "relations": [
+            "game"
+          ]
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vrfRequest"
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "startGame",
+      "discriminator": [
+        249,
+        47,
+        252,
+        172,
+        184,
+        162,
+        245,
+        14
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "game",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  97,
+                  109,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              },
+              {
+                "kind": "account",
+                "path": "state.game_counter",
+                "account": "state"
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "vrf",
+          "address": "VRFzZoJdhFWL8rkvu87LpKM3RbcVezpMEc6X5GVDr7y"
+        },
+        {
+          "name": "vrfNetworkState",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  111,
+                  114,
+                  97,
+                  111,
+                  45,
+                  118,
+                  114,
+                  102,
+                  45,
+                  110,
+                  101,
+                  116,
+                  119,
+                  111,
+                  114,
+                  107,
+                  45,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  117,
+                  114,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                7,
+                71,
+                177,
+                26,
+                250,
+                145,
+                180,
+                209,
+                249,
+                34,
+                242,
+                123,
+                14,
+                186,
+                193,
+                218,
+                178,
+                59,
+                33,
+                41,
+                164,
+                190,
+                243,
+                79,
+                50,
+                164,
+                123,
+                88,
+                245,
+                206,
+                252,
+                120
+              ]
+            }
+          }
+        },
+        {
+          "name": "vrfTreasury",
+          "writable": true
+        },
+        {
+          "name": "vrfRequest",
+          "writable": true
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        },
+        {
+          "name": "choice",
+          "type": "bool"
+        },
+        {
+          "name": "mode",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "withdrawProfit",
+      "discriminator": [
+        246,
+        31,
+        231,
+        85,
+        253,
+        136,
+        120,
+        168
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  116,
+                  97,
+                  116,
+                  101
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "treasury",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  116,
+                  114,
+                  101,
+                  97,
+                  115,
+                  117,
+                  114,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "systemProgram",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "game",
+      "discriminator": [
+        27,
+        90,
+        166,
+        125,
+        74,
+        100,
+        121,
+        18
+      ]
+    },
+    {
+      "name": "networkState",
+      "discriminator": [
+        212,
+        237,
+        148,
+        56,
+        97,
+        245,
+        51,
+        169
+      ]
+    },
+    {
+      "name": "randomnessV2",
+      "discriminator": [
+        139,
+        239,
+        184,
+        215,
+        227,
+        86,
+        191,
+        226
+      ]
+    },
+    {
+      "name": "state",
+      "discriminator": [
+        216,
+        146,
+        107,
+        94,
+        104,
+        75,
+        182,
+        177
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "gameSettled",
+      "discriminator": [
+        63,
+        109,
+        128,
+        85,
+        229,
+        63,
+        167,
+        176
+      ]
+    },
+    {
+      "name": "gameStarted",
+      "discriminator": [
+        222,
+        247,
+        78,
+        255,
+        61,
+        184,
+        156,
+        41
+      ]
+    },
+    {
+      "name": "profitWithdrawn",
+      "discriminator": [
+        165,
+        15,
+        185,
+        73,
+        134,
+        218,
+        84,
+        78
+      ]
+    },
+    {
+      "name": "treasuryDeposited",
+      "discriminator": [
+        1,
+        193,
+        184,
+        0,
+        137,
+        134,
+        85,
+        50
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "betTooLow",
+      "msg": "Bet amount too low"
+    },
+    {
+      "code": 6001,
+      "name": "betTooHigh",
+      "msg": "Bet amount too high"
+    },
+    {
+      "code": 6002,
+      "name": "alreadySettled",
+      "msg": "Game already settled"
+    },
+    {
+      "code": 6003,
+      "name": "insufficientTreasury",
+      "msg": "Treasury insufficient"
+    },
+    {
+      "code": 6004,
+      "name": "unauthorized",
+      "msg": "unauthorized"
+    },
+    {
+      "code": 6005,
+      "name": "invalidGameMode",
+      "msg": "Invalid game mode"
+    },
+    {
+      "code": 6006,
+      "name": "programPaused",
+      "msg": "Program paused"
+    },
+    {
+      "code": 6007,
+      "name": "invalidChoice",
+      "msg": "Invalid bet choice"
+    },
+    {
+      "code": 6008,
+      "name": "mathOverflow",
+      "msg": "Arithmetic overflow"
+    },
+    {
+      "code": 6009,
+      "name": "randomnessNotFulfilled",
+      "msg": "Randomness has not been fulfilled yet"
+    },
+    {
+      "code": 6010,
+      "name": "invalidRandomnessAccount",
+      "msg": "Invalid randomness account"
+    },
+    {
+      "code": 6011,
+      "name": "invalidTreasury",
+      "msg": "Invalid treasury account"
+    },
+    {
+      "code": 6012,
+      "name": "noProfit",
+      "msg": "No withdrawable profit"
+    }
+  ],
+  "types": [
+    {
+      "name": "fulfilledRequest",
+      "docs": [
+        "Fulfilled request representation."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "client",
+            "type": "pubkey"
+          },
+          {
+            "name": "seed",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "randomness",
+            "docs": [
+              "Generated randomness.",
+              "",
+              "Please look into the account history logs to observe the individual components."
+            ],
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "game",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "choice",
+            "type": "bool"
+          },
+          {
+            "name": "mode",
+            "type": "u8"
+          },
+          {
+            "name": "won",
+            "type": "bool"
+          },
+          {
+            "name": "settled",
+            "type": "bool"
+          },
+          {
+            "name": "randomness",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "createdAt",
+            "type": "i64"
+          },
+          {
+            "name": "maxPayout",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "gameSettled",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "won",
+            "type": "bool"
+          },
+          {
+            "name": "payout",
+            "type": "u64"
+          },
+          {
+            "name": "randomness",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "gameStarted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "game",
+            "type": "pubkey"
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "choice",
+            "type": "bool"
+          },
+          {
+            "name": "mode",
+            "type": "u8"
+          },
+          {
+            "name": "randomnessRequest",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "networkConfiguration",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "type": "pubkey"
+          },
+          {
+            "name": "requestFee",
+            "type": "u64"
+          },
+          {
+            "name": "fulfillmentAuthorities",
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
+            "name": "tokenFeeConfig",
+            "type": {
+              "option": {
+                "defined": {
+                  "name": "oraoTokenFeeConfig"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "networkState",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "config",
+            "type": {
+              "defined": {
+                "name": "networkConfiguration"
+              }
+            }
+          },
+          {
+            "name": "numReceived",
+            "docs": [
+              "Total number of received requests."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "oraoTokenFeeConfig",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "mint",
+            "docs": [
+              "ORAO token mint address."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "treasury",
+            "docs": [
+              "ORAO token treasury account."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "fee",
+            "docs": [
+              "Fee in ORAO SPL token smallest units."
+            ],
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "pendingRequest",
+      "docs": [
+        "Pending request representation."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "client",
+            "type": "pubkey"
+          },
+          {
+            "name": "seed",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "responses",
+            "docs": [
+              "Responses collected so far."
+            ],
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "randomnessResponse"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "profitWithdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "randomnessResponse",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "pubkey",
+            "type": "pubkey"
+          },
+          {
+            "name": "randomness",
+            "type": {
+              "array": [
+                "u8",
+                64
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "randomnessV2",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "request",
+            "type": {
+              "defined": {
+                "name": "requestAccount"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "requestAccount",
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "pending",
+            "fields": [
+              {
+                "defined": {
+                  "name": "pendingRequest"
+                }
+              }
+            ]
+          },
+          {
+            "name": "fulfilled",
+            "fields": [
+              {
+                "defined": {
+                  "name": "fulfilledRequest"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "name": "state",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "treasuryBump",
+            "type": "u8"
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          },
+          {
+            "name": "gameCounter",
+            "type": "u64"
+          },
+          {
+            "name": "lockedLiquidity",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "treasuryDeposited",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    }
+  ],
+  "constants": [
+    {
+      "name": "doubleMode",
+      "type": "u8",
+      "value": "2"
+    },
+    {
+      "name": "doubleModeMaxBet",
+      "type": "u64",
+      "value": "10000000000"
+    },
+    {
+      "name": "doubleModeMinBet",
+      "type": "u64",
+      "value": "200000000"
+    },
+    {
+      "name": "doubleModeMultiplier",
+      "type": "u64",
+      "value": "4"
+    },
+    {
+      "name": "doubleModeWinModulo",
+      "type": "u64",
+      "value": "4"
+    },
+    {
+      "name": "gameSeed",
+      "type": "bytes",
+      "value": "[103, 97, 109, 101]"
+    },
+    {
+      "name": "normalMode",
+      "type": "u8",
+      "value": "1"
+    },
+    {
+      "name": "normalModeMaxBet",
+      "type": "u64",
+      "value": "5000000000"
+    },
+    {
+      "name": "normalModeMinBet",
+      "type": "u64",
+      "value": "100000000"
+    },
+    {
+      "name": "normalModeMultiplier",
+      "type": "u64",
+      "value": "2"
+    },
+    {
+      "name": "normalModeWinModulo",
+      "type": "u64",
+      "value": "2"
+    },
+    {
+      "name": "stateSeed",
+      "type": "bytes",
+      "value": "[115, 116, 97, 116, 101]"
+    },
+    {
+      "name": "treasurySeed",
+      "type": "bytes",
+      "value": "[116, 114, 101, 97, 115, 117, 114, 121]"
+    }
+  ]
+};

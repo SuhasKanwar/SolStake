@@ -1,6 +1,12 @@
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+
 export default function Header() {
     return (
         <header className="w-full max-w-2xl flex flex-col items-center justify-center">
+            <div className="mb-5 flex w-full justify-end">
+                <WalletMultiButton className="!rounded-xl !bg-[#f3c815] !font-bold !text-[#814c0f]" />
+            </div>
+
             <img
                 src="/cat.gif"
                 alt="Cat mascot"
