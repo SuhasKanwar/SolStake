@@ -1,9 +1,3 @@
-/**
- * Program IDL in camelCase format in order to be used in JS/TS.
- *
- * Note that this is only a type helper and is not the actual IDL. The original
- * IDL can be found at `target/idl/contract.json`.
- */
 export type Contract = {
   "address": "33vQPdG6AQCQ5QGHQjqJra49n4a64PjZLEYgEXdX6T39",
   "metadata": {
@@ -14,7 +8,7 @@ export type Contract = {
   },
   "instructions": [
     {
-      "name": "depositTreasury",
+      "name": "deposit_treasury",
       "discriminator": [
         2,
         129,
@@ -53,7 +47,7 @@ export type Contract = {
           }
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -121,14 +115,14 @@ export type Contract = {
           }
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "settleGame",
+      "name": "settle_game",
       "discriminator": [
         96,
         54,
@@ -191,17 +185,17 @@ export type Contract = {
           }
         },
         {
-          "name": "vrfRequest"
+          "name": "vrf_request"
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
       "args": []
     },
     {
-      "name": "startGame",
+      "name": "start_game",
       "discriminator": [
         249,
         47,
@@ -257,7 +251,7 @@ export type Contract = {
               {
                 "kind": "account",
                 "path": "state.game_counter",
-                "account": "state"
+                "account": "State"
               }
             ]
           }
@@ -288,7 +282,7 @@ export type Contract = {
           "address": "VRFzZoJdhFWL8rkvu87LpKM3RbcVezpMEc6X5GVDr7y"
         },
         {
-          "name": "vrfNetworkState",
+          "name": "vrf_network_state",
           "writable": true,
           "pda": {
             "seeds": [
@@ -368,15 +362,15 @@ export type Contract = {
           }
         },
         {
-          "name": "vrfTreasury",
+          "name": "vrf_treasury",
           "writable": true
         },
         {
-          "name": "vrfRequest",
+          "name": "vrf_request",
           "writable": true
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -396,7 +390,7 @@ export type Contract = {
       ]
     },
     {
-      "name": "withdrawProfit",
+      "name": "withdraw_profit",
       "discriminator": [
         246,
         31,
@@ -452,7 +446,7 @@ export type Contract = {
           }
         },
         {
-          "name": "systemProgram",
+          "name": "system_program",
           "address": "11111111111111111111111111111111"
         }
       ],
@@ -466,7 +460,7 @@ export type Contract = {
   ],
   "accounts": [
     {
-      "name": "game",
+      "name": "Game",
       "discriminator": [
         27,
         90,
@@ -479,7 +473,7 @@ export type Contract = {
       ]
     },
     {
-      "name": "networkState",
+      "name": "NetworkState",
       "discriminator": [
         212,
         237,
@@ -492,7 +486,7 @@ export type Contract = {
       ]
     },
     {
-      "name": "randomnessV2",
+      "name": "RandomnessV2",
       "discriminator": [
         139,
         239,
@@ -505,7 +499,7 @@ export type Contract = {
       ]
     },
     {
-      "name": "state",
+      "name": "State",
       "discriminator": [
         216,
         146,
@@ -520,7 +514,7 @@ export type Contract = {
   ],
   "events": [
     {
-      "name": "gameSettled",
+      "name": "GameSettled",
       "discriminator": [
         63,
         109,
@@ -533,7 +527,7 @@ export type Contract = {
       ]
     },
     {
-      "name": "gameStarted",
+      "name": "GameStarted",
       "discriminator": [
         222,
         247,
@@ -546,7 +540,7 @@ export type Contract = {
       ]
     },
     {
-      "name": "profitWithdrawn",
+      "name": "ProfitWithdrawn",
       "discriminator": [
         165,
         15,
@@ -559,7 +553,7 @@ export type Contract = {
       ]
     },
     {
-      "name": "treasuryDeposited",
+      "name": "TreasuryDeposited",
       "discriminator": [
         1,
         193,
@@ -575,73 +569,73 @@ export type Contract = {
   "errors": [
     {
       "code": 6000,
-      "name": "betTooLow",
+      "name": "BetTooLow",
       "msg": "Bet amount too low"
     },
     {
       "code": 6001,
-      "name": "betTooHigh",
+      "name": "BetTooHigh",
       "msg": "Bet amount too high"
     },
     {
       "code": 6002,
-      "name": "alreadySettled",
+      "name": "AlreadySettled",
       "msg": "Game already settled"
     },
     {
       "code": 6003,
-      "name": "insufficientTreasury",
+      "name": "InsufficientTreasury",
       "msg": "Treasury insufficient"
     },
     {
       "code": 6004,
-      "name": "unauthorized",
-      "msg": "unauthorized"
+      "name": "Unauthorized",
+      "msg": "Unauthorized"
     },
     {
       "code": 6005,
-      "name": "invalidGameMode",
+      "name": "InvalidGameMode",
       "msg": "Invalid game mode"
     },
     {
       "code": 6006,
-      "name": "programPaused",
+      "name": "ProgramPaused",
       "msg": "Program paused"
     },
     {
       "code": 6007,
-      "name": "invalidChoice",
+      "name": "InvalidChoice",
       "msg": "Invalid bet choice"
     },
     {
       "code": 6008,
-      "name": "mathOverflow",
+      "name": "MathOverflow",
       "msg": "Arithmetic overflow"
     },
     {
       "code": 6009,
-      "name": "randomnessNotFulfilled",
+      "name": "RandomnessNotFulfilled",
       "msg": "Randomness has not been fulfilled yet"
     },
     {
       "code": 6010,
-      "name": "invalidRandomnessAccount",
+      "name": "InvalidRandomnessAccount",
       "msg": "Invalid randomness account"
     },
     {
       "code": 6011,
-      "name": "invalidTreasury",
+      "name": "InvalidTreasury",
       "msg": "Invalid treasury account"
     },
     {
       "code": 6012,
-      "name": "noProfit",
+      "name": "NoProfit",
       "msg": "No withdrawable profit"
     }
   ],
   "types": [
     {
-      "name": "fulfilledRequest",
+      "name": "FulfilledRequest",
       "docs": [
         "Fulfilled request representation."
       ],
@@ -679,7 +673,7 @@ export type Contract = {
       }
     },
     {
-      "name": "game",
+      "name": "Game",
       "type": {
         "kind": "struct",
         "fields": [
@@ -717,18 +711,18 @@ export type Contract = {
             }
           },
           {
-            "name": "createdAt",
+            "name": "created_at",
             "type": "i64"
           },
           {
-            "name": "maxPayout",
+            "name": "max_payout",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "gameSettled",
+      "name": "GameSettled",
       "type": {
         "kind": "struct",
         "fields": [
@@ -761,7 +755,7 @@ export type Contract = {
       }
     },
     {
-      "name": "gameStarted",
+      "name": "GameStarted",
       "type": {
         "kind": "struct",
         "fields": [
@@ -786,14 +780,14 @@ export type Contract = {
             "type": "u8"
           },
           {
-            "name": "randomnessRequest",
+            "name": "randomness_request",
             "type": "pubkey"
           }
         ]
       }
     },
     {
-      "name": "networkConfiguration",
+      "name": "NetworkConfiguration",
       "type": {
         "kind": "struct",
         "fields": [
@@ -806,21 +800,21 @@ export type Contract = {
             "type": "pubkey"
           },
           {
-            "name": "requestFee",
+            "name": "request_fee",
             "type": "u64"
           },
           {
-            "name": "fulfillmentAuthorities",
+            "name": "fulfillment_authorities",
             "type": {
               "vec": "pubkey"
             }
           },
           {
-            "name": "tokenFeeConfig",
+            "name": "token_fee_config",
             "type": {
               "option": {
                 "defined": {
-                  "name": "oraoTokenFeeConfig"
+                  "name": "OraoTokenFeeConfig"
                 }
               }
             }
@@ -829,7 +823,7 @@ export type Contract = {
       }
     },
     {
-      "name": "networkState",
+      "name": "NetworkState",
       "type": {
         "kind": "struct",
         "fields": [
@@ -837,12 +831,12 @@ export type Contract = {
             "name": "config",
             "type": {
               "defined": {
-                "name": "networkConfiguration"
+                "name": "NetworkConfiguration"
               }
             }
           },
           {
-            "name": "numReceived",
+            "name": "num_received",
             "docs": [
               "Total number of received requests."
             ],
@@ -852,7 +846,7 @@ export type Contract = {
       }
     },
     {
-      "name": "oraoTokenFeeConfig",
+      "name": "OraoTokenFeeConfig",
       "type": {
         "kind": "struct",
         "fields": [
@@ -881,7 +875,7 @@ export type Contract = {
       }
     },
     {
-      "name": "pendingRequest",
+      "name": "PendingRequest",
       "docs": [
         "Pending request representation."
       ],
@@ -909,7 +903,7 @@ export type Contract = {
             "type": {
               "vec": {
                 "defined": {
-                  "name": "randomnessResponse"
+                  "name": "RandomnessResponse"
                 }
               }
             }
@@ -918,7 +912,7 @@ export type Contract = {
       }
     },
     {
-      "name": "profitWithdrawn",
+      "name": "ProfitWithdrawn",
       "type": {
         "kind": "struct",
         "fields": [
@@ -934,7 +928,7 @@ export type Contract = {
       }
     },
     {
-      "name": "randomnessResponse",
+      "name": "RandomnessResponse",
       "type": {
         "kind": "struct",
         "fields": [
@@ -955,7 +949,7 @@ export type Contract = {
       }
     },
     {
-      "name": "randomnessV2",
+      "name": "RandomnessV2",
       "type": {
         "kind": "struct",
         "fields": [
@@ -963,7 +957,7 @@ export type Contract = {
             "name": "request",
             "type": {
               "defined": {
-                "name": "requestAccount"
+                "name": "RequestAccount"
               }
             }
           }
@@ -971,26 +965,26 @@ export type Contract = {
       }
     },
     {
-      "name": "requestAccount",
+      "name": "RequestAccount",
       "type": {
         "kind": "enum",
         "variants": [
           {
-            "name": "pending",
+            "name": "Pending",
             "fields": [
               {
                 "defined": {
-                  "name": "pendingRequest"
+                  "name": "PendingRequest"
                 }
               }
             ]
           },
           {
-            "name": "fulfilled",
+            "name": "Fulfilled",
             "fields": [
               {
                 "defined": {
-                  "name": "fulfilledRequest"
+                  "name": "FulfilledRequest"
                 }
               }
             ]
@@ -999,7 +993,7 @@ export type Contract = {
       }
     },
     {
-      "name": "state",
+      "name": "State",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1008,7 +1002,7 @@ export type Contract = {
             "type": "pubkey"
           },
           {
-            "name": "treasuryBump",
+            "name": "treasury_bump",
             "type": "u8"
           },
           {
@@ -1016,18 +1010,18 @@ export type Contract = {
             "type": "bool"
           },
           {
-            "name": "gameCounter",
+            "name": "game_counter",
             "type": "u64"
           },
           {
-            "name": "lockedLiquidity",
+            "name": "locked_liquidity",
             "type": "u64"
           }
         ]
       }
     },
     {
-      "name": "treasuryDeposited",
+      "name": "TreasuryDeposited",
       "type": {
         "kind": "struct",
         "fields": [
@@ -1045,69 +1039,69 @@ export type Contract = {
   ],
   "constants": [
     {
-      "name": "doubleMode",
+      "name": "DOUBLE_MODE",
       "type": "u8",
       "value": "2"
     },
     {
-      "name": "doubleModeMaxBet",
+      "name": "DOUBLE_MODE_MAX_BET",
       "type": "u64",
       "value": "10000000000"
     },
     {
-      "name": "doubleModeMinBet",
+      "name": "DOUBLE_MODE_MIN_BET",
       "type": "u64",
       "value": "200000000"
     },
     {
-      "name": "doubleModeMultiplier",
+      "name": "DOUBLE_MODE_MULTIPLIER",
       "type": "u64",
       "value": "4"
     },
     {
-      "name": "doubleModeWinModulo",
+      "name": "DOUBLE_MODE_WIN_MODULO",
       "type": "u64",
       "value": "4"
     },
     {
-      "name": "gameSeed",
+      "name": "GAME_SEED",
       "type": "bytes",
       "value": "[103, 97, 109, 101]"
     },
     {
-      "name": "normalMode",
+      "name": "NORMAL_MODE",
       "type": "u8",
       "value": "1"
     },
     {
-      "name": "normalModeMaxBet",
+      "name": "NORMAL_MODE_MAX_BET",
       "type": "u64",
       "value": "5000000000"
     },
     {
-      "name": "normalModeMinBet",
+      "name": "NORMAL_MODE_MIN_BET",
       "type": "u64",
       "value": "100000000"
     },
     {
-      "name": "normalModeMultiplier",
+      "name": "NORMAL_MODE_MULTIPLIER",
       "type": "u64",
       "value": "2"
     },
     {
-      "name": "normalModeWinModulo",
+      "name": "NORMAL_MODE_WIN_MODULO",
       "type": "u64",
       "value": "2"
     },
     {
-      "name": "stateSeed",
+      "name": "STATE_SEED",
       "type": "bytes",
       "value": "[115, 116, 97, 116, 101]"
     },
     {
-      "name": "treasurySeed",
+      "name": "TREASURY_SEED",
       "type": "bytes",
       "value": "[116, 114, 101, 97, 115, 117, 114, 121]"
     }
   ]
-};
+}
