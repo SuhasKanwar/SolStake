@@ -97,21 +97,41 @@ async function confirm(provider: anchor.AnchorProvider, signature: string) {
 
 export async function fetchState(connection: Connection, wallet: AnchorWallet) {
     const program = getProgram(connection, wallet);
-    return program.account.state.fetchNullable(statePda());
+    return (program.account as any).state.fetchNullable(statePda());
+}
+
+async function sendAndConfirmTx(
+    connection: Connection,
+    wallet: AnchorWallet,
+    builder: any,
+) {
+    const provider = getProvider(connection, wallet);
+    const tx = await builder.transaction();
+    tx.feePayer = wallet.publicKey;
+    const { blockhash } = await connection.getLatestBlockhash("confirmed");
+    tx.recentBlockhash = blockhash;
+
+    const signedTx = await wallet.signTransaction(tx);
+    const signature = await connection.sendRawTransaction(signedTx.serialize(), {
+        skipPreflight: false,
+        preflightCommitment: "confirmed",
+    });
+
+    await confirm(provider, signature);
+    return signature;
 }
 
 export async function initializeTreasury(connection: Connection, wallet: AnchorWallet) {
     const program = getProgram(connection, wallet);
-    const signature = await program.methods
+    const builder = (program.methods as any)
         .initialize()
         .accountsStrict({
             authority: wallet.publicKey,
             state: statePda(),
             treasury: treasuryPda(),
             systemProgram: SystemProgram.programId,
-        })
-        .rpc();
-    return confirm(program.provider as anchor.AnchorProvider, signature);
+        } as any);
+    return sendAndConfirmTx(connection, wallet, builder);
 }
 
 async function ensureInitialized(connection: Connection, wallet: AnchorWallet) {
@@ -124,15 +144,14 @@ async function ensureInitialized(connection: Connection, wallet: AnchorWallet) {
 export async function depositTreasury(connection: Connection, wallet: AnchorWallet, solAmount: number) {
     const program = getProgram(connection, wallet);
     const lamports = new anchor.BN(Math.round(solAmount * anchor.web3.LAMPORTS_PER_SOL));
-    const signature = await program.methods
+    const builder = (program.methods as any)
         .depositTreasury(lamports)
         .accountsStrict({
             authority: wallet.publicKey,
             treasury: treasuryPda(),
             systemProgram: SystemProgram.programId,
-        })
-        .rpc();
-    return confirm(program.provider as anchor.AnchorProvider, signature);
+        } as any);
+    return sendAndConfirmTx(connection, wallet, builder);
 }
 
 export async function startGame(
@@ -145,14 +164,14 @@ export async function startGame(
     await ensureInitialized(connection, wallet);
 
     const program = getProgram(connection, wallet);
-    const state = await program.account.state.fetch(statePda());
-    const game = gamePda(wallet.publicKey, state.gameCounter);
+    const state = await (program.account as any).state.fetch(statePda());
+    const game = gamePda(wallet.publicKey, (state as any).gameCounter);
     const vrfNetworkState = oraoNetworkStatePda();
-    const vrfNetwork = await program.account.networkState.fetch(vrfNetworkState);
+    const vrfNetwork = await (program.account as any).networkState.fetch(vrfNetworkState);
     const vrfRequest = oraoRandomnessPda(game);
     const lamports = new anchor.BN(Math.round(solAmount * anchor.web3.LAMPORTS_PER_SOL));
 
-    const signature = await program.methods
+    const builder = (program.methods as any)
         .startGame(lamports, choice === "HEADS", GAME_MODE[mode])
         .accountsStrict({
             player: wallet.publicKey,
@@ -161,20 +180,19 @@ export async function startGame(
             treasury: treasuryPda(),
             vrf: ORAO_VRF_PROGRAM_ID,
             vrfNetworkState,
-            vrfTreasury: vrfNetwork.config.treasury,
+            vrfTreasury: (vrfNetwork as any).config.treasury,
             vrfRequest,
             systemProgram: SystemProgram.programId,
-        })
-        .rpc();
+        } as any);
 
-    await confirm(program.provider as anchor.AnchorProvider, signature);
+    const signature = await sendAndConfirmTx(connection, wallet, builder);
     return { signature, game, vrfRequest };
 }
 
 export async function settleGame(connection: Connection, wallet: AnchorWallet, game: PublicKey) {
     const program = getProgram(connection, wallet);
-    const gameAccount = await program.account.game.fetch(game);
-    const signature = await program.methods
+    const gameAccount = await (program.account as any).game.fetch(game);
+    const builder = (program.methods as any)
         .settleGame()
         .accountsStrict({
             state: statePda(),
@@ -183,12 +201,11 @@ export async function settleGame(connection: Connection, wallet: AnchorWallet, g
             treasury: treasuryPda(),
             vrfRequest: oraoRandomnessPda(game),
             systemProgram: SystemProgram.programId,
-        })
-        .rpc();
-    return confirm(program.provider as anchor.AnchorProvider, signature);
+        } as any);
+    return sendAndConfirmTx(connection, wallet, builder);
 }
 
 export async function fetchGame(connection: Connection, wallet: AnchorWallet, game: PublicKey) {
     const program = getProgram(connection, wallet);
-    return program.account.game.fetch(game);
+    return (program.account as any).game.fetch(game);
 }

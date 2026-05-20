@@ -1,10 +1,46 @@
+import { useEffect, useState } from "react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 export default function Header() {
+    const { connection } = useConnection();
+    const { publicKey, connected } = useWallet();
+    const [balance, setBalance] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (!connected || !publicKey) {
+            setBalance(null);
+            return;
+        }
+
+        const updateBalance = async () => {
+            try {
+                const bal = await connection.getBalance(publicKey, "confirmed");
+                setBalance(bal / LAMPORTS_PER_SOL);
+            } catch (e) {
+                console.error("Failed to fetch balance:", e);
+            }
+        };
+
+        updateBalance();
+
+        const intervalId = setInterval(updateBalance, 4000);
+
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, [connection, publicKey, connected]);
+
     return (
         <>
-            <div className="fixed top-4 right-4 z-50">
+            <div className="fixed top-4 right-4 z-50 flex flex-col items-end gap-1.5">
                 <WalletMultiButton className="!rounded-xl !bg-[#f3c815] !font-bold !text-[#814c0f]" />
+                {connected && balance !== null && (
+                    <div className="rounded-xl border border-white/10 bg-black/50 px-3.5 py-1 text-sm font-bold text-white shadow-lg backdrop-blur-md transition-all animate-fade-in">
+                        {balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })} SOL
+                    </div>
+                )}
             </div>
 
             <header className="w-full max-w-2xl flex flex-col items-center justify-center">

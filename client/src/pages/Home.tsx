@@ -1,6 +1,7 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
 import { Gem, Target, Loader2, Trophy, Frown, Timer, TriangleAlert } from "lucide-react";
+import { EventParser } from "@coral-xyz/anchor";
 import Header from "../components/Header";
 import { STAKES } from "../lib/config";
 import { Button } from "../components/Button";
@@ -10,10 +11,19 @@ import {
     fetchGame,
     settleGame,
     startGame,
+    getProgram,
 } from "../lib/anchor";
 
 const SETTLE_POLL_INTERVAL = 2500;
 const SETTLE_MAX_RETRIES = 40;
+
+interface EventLog {
+    id: string;
+    name: string;
+    time: string;
+    details: string;
+    type: "info" | "success" | "warning";
+}
 
 export default function HomePage() {
     const { connection } = useConnection();
@@ -25,10 +35,94 @@ export default function HomePage() {
     const [loading, setLoading] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [pendingChoice, setPendingChoice] = useState<CoinChoice | null>(null);
+    const [events, setEvents] = useState<EventLog[]>([]);
     const flipLockRef = useRef(false);
 
     const is2x = mode === "2X";
     const stakeOptions = STAKES[mode];
+
+    useEffect(() => {
+        if (!wallet) {
+            setEvents([]);
+            return;
+        }
+
+        const program = getProgram(connection, wallet);
+        const parsedSignatures = new Set<string>();
+
+        const addEventLog = (id: string, name: string, time: string, details: string, type: "info" | "success" | "warning") => {
+            setEvents((prev) => {
+                if (prev.some((e) => e.id === id)) return prev;
+                return [{ id, name, time, details, type }, ...prev].slice(0, 10);
+            });
+        };
+
+        const pollEvents = async () => {
+            try {
+                const sigs = await connection.getSignaturesForAddress(program.programId, { limit: 6 }, "confirmed");
+                const newSigs = sigs.filter(s => !parsedSignatures.has(s.signature));
+                if (newSigs.length === 0) return;
+
+                const eventParser = new EventParser(program.programId, program.coder);
+
+                for (const sigInfo of newSigs) {
+                    parsedSignatures.add(sigInfo.signature);
+
+                    try {
+                        const tx = await connection.getParsedTransaction(sigInfo.signature, {
+                            commitment: "confirmed",
+                            maxSupportedTransactionVersion: 0,
+                        });
+
+                        if (!tx || !tx.meta || !tx.meta.logMessages) continue;
+
+                        const parsedEvents = eventParser.parseLogs(tx.meta.logMessages);
+                        let index = 0;
+                        for (const parsedEvent of parsedEvents) {
+                            const eventName = parsedEvent.name;
+                            const eventData = parsedEvent.data as any;
+                            const eventId = `${sigInfo.signature}-${index++}`;
+
+                            const time = sigInfo.blockTime
+                                ? new Date(sigInfo.blockTime * 1000).toLocaleTimeString()
+                                : new Date().toLocaleTimeString();
+
+                            if (eventName === "GameStarted") {
+                                addEventLog(
+                                    eventId,
+                                    "GameStarted",
+                                    time,
+                                    `Player ${eventData.player.toString().slice(0, 4)}... bet ${eventData.amount.toNumber() / 1e9} SOL on ${eventData.choice ? "HEADS" : "TAILS"}`,
+                                    "info"
+                                );
+                            } else if (eventName === "GameSettled") {
+                                const payoutSOL = eventData.payout.toNumber() / 1e9;
+                                addEventLog(
+                                    eventId,
+                                    "GameSettled",
+                                    time,
+                                    `Player ${eventData.player.toString().slice(0, 4)}... ${eventData.won ? `WON ${payoutSOL} SOL! 🏆` : "LOST bet 😢"}`,
+                                    eventData.won ? "success" : "warning"
+                                );
+                            }
+                        }
+                    } catch (txErr) {
+                        console.warn(`Error parsing transaction ${sigInfo.signature}:`, txErr);
+                        parsedSignatures.delete(sigInfo.signature);
+                    }
+                }
+            } catch (e) {
+                console.warn("Error polling events:", e);
+            }
+        };
+
+        pollEvents();
+        const intervalId = setInterval(pollEvents, 7000);
+
+        return () => {
+            clearInterval(intervalId);
+        };
+    }, [connection, wallet]);
 
     function switchMode() {
         const nextMode: typeof mode = is2x ? "NORMAL" : "2X";
@@ -208,12 +302,48 @@ export default function HomePage() {
                 </div>
             </section>
 
-            <section className="mt-6 w-full max-w-2xl rounded-2xl bg-black/25 px-5 py-4 text-center text-white">
+            <section className="mt-6 w-full max-w-2xl rounded-2xl bg-black/25 px-5 py-4 text-center text-white border border-white/[0.05]">
                 <p className="flex items-center justify-center gap-2 wrap-break-word text-base font-bold sm:text-lg">
                     {renderStatusIcon()}
                     {loading ? "Transaction pending..." : status}
                 </p>
                 {error && <p className="mt-2 wrap-break-word text-sm font-bold text-red-200">{error}</p>}
+            </section>
+
+            {/* Live Contract Events Panel */}
+            <section className="mt-6 w-full max-w-2xl rounded-2xl bg-black/40 border border-white/[0.06] p-5 text-white shadow-xl backdrop-blur-md">
+                <h3 className="text-lg font-bold text-[#f3c815] mb-3 flex items-center gap-2" style={{ fontFamily: "var(--font-display)" }}>
+                    <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    LIVE CONTRACT EVENTS
+                </h3>
+                <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
+                    {events.length === 0 ? (
+                        <p className="text-sm font-medium text-white/40 italic text-center py-4">
+                            Waiting for contract events to emit...
+                        </p>
+                    ) : (
+                        events.map((ev) => {
+                            let badgeCls = "bg-blue-500/20 text-blue-300 border-blue-500/30";
+                            if (ev.type === "success") badgeCls = "bg-green-500/20 text-green-300 border-green-500/30";
+                            if (ev.type === "warning") badgeCls = "bg-red-500/20 text-red-300 border-red-500/30";
+
+                            return (
+                                <div key={ev.id} className="flex items-start justify-between gap-3 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] text-xs font-semibold animate-fade-in transition-all">
+                                    <div className="flex items-center gap-2">
+                                        <span className={`px-2 py-0.5 rounded-md border text-[10px] uppercase font-bold tracking-wider ${badgeCls}`}>
+                                            {ev.name}
+                                        </span>
+                                        <span className="text-white/80">{ev.details}</span>
+                                    </div>
+                                    <span className="text-white/40 text-[10px] shrink-0 font-medium">{ev.time}</span>
+                                </div>
+                            );
+                        })
+                    )}
+                </div>
             </section>
 
             <ConfirmModal
