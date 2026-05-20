@@ -31,7 +31,7 @@ export default function Header() {
     return (
         <>
             <div className="fixed top-4 right-4 z-50 flex flex-col items-end gap-1.5">
-                <WalletMultiButton className="!rounded-xl !bg-[#f3c815] !font-bold !text-[#814c0f]" />
+                <WalletMultiButton className="rounded-xl! bg-[#f3c815]! font-bold! text-[#814c0f]!" />
                 {connected && balance !== null && (
                     <div className="rounded-xl border border-white/10 bg-black/50 px-3.5 py-1 text-sm font-bold text-white shadow-lg backdrop-blur-md transition-all animate-fade-in">
                         {balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })} SOL

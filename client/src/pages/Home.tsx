@@ -1,7 +1,6 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { Gem, Target, Loader2, Trophy, Frown, Timer, TriangleAlert } from "lucide-react";
-import { EventParser } from "@coral-xyz/anchor";
 import Header from "../components/Header";
 import { STAKES } from "../lib/config";
 import { Button } from "../components/Button";
@@ -10,20 +9,11 @@ import {
     type CoinChoice,
     fetchGame,
     settleGame,
-    startGame,
-    getProgram,
+    startGame
 } from "../lib/anchor";
 
 const SETTLE_POLL_INTERVAL = 2500;
 const SETTLE_MAX_RETRIES = 40;
-
-interface EventLog {
-    id: string;
-    name: string;
-    time: string;
-    details: string;
-    type: "info" | "success" | "warning";
-}
 
 export default function HomePage() {
     const { connection } = useConnection();
@@ -35,94 +25,10 @@ export default function HomePage() {
     const [loading, setLoading] = useState(false);
     const [modalOpen, setModalOpen] = useState(false);
     const [pendingChoice, setPendingChoice] = useState<CoinChoice | null>(null);
-    const [events, setEvents] = useState<EventLog[]>([]);
     const flipLockRef = useRef(false);
 
     const is2x = mode === "2X";
     const stakeOptions = STAKES[mode];
-
-    const processSignatureLogs = useCallback(async (signature: string) => {
-        if (!wallet || !wallet.publicKey) return;
-        try {
-            const program = getProgram(connection, wallet);
-            const tx = await connection.getParsedTransaction(signature, {
-                commitment: "confirmed",
-                maxSupportedTransactionVersion: 0,
-            });
-
-            if (!tx || !tx.meta || !tx.meta.logMessages) return;
-
-            const eventParser = new EventParser(program.programId, program.coder);
-            const parsedEvents = eventParser.parseLogs(tx.meta.logMessages);
-            let index = 0;
-            const time = new Date().toLocaleTimeString();
-
-            for (const parsedEvent of parsedEvents) {
-                const eventName = parsedEvent.name;
-                const eventData = parsedEvent.data as any;
-                const eventId = `${signature}-${index++}`;
-
-                if (eventName === "GameStarted") {
-                    setEvents((prev) => {
-                        if (prev.some((e) => e.id === eventId)) return prev;
-                        return [{
-                            id: eventId,
-                            name: "GameStarted",
-                            time,
-                            details: `Player ${eventData.player.toString().slice(0, 4)}... bet ${eventData.amount.toNumber() / 1e9} SOL on ${eventData.choice ? "HEADS" : "TAILS"}`,
-                            type: "info" as const
-                        }, ...prev].slice(0, 10);
-                    });
-                } else if (eventName === "GameSettled") {
-                    const payoutSOL = eventData.payout.toNumber() / 1e9;
-                    setEvents((prev) => {
-                        if (prev.some((e) => e.id === eventId)) return prev;
-                        return [{
-                            id: eventId,
-                            name: "GameSettled",
-                            time,
-                            details: `Player ${eventData.player.toString().slice(0, 4)}... ${eventData.won ? `WON ${payoutSOL} SOL! 🏆` : "LOST bet 😢"}`,
-                            type: (eventData.won ? "success" : "warning") as "success" | "warning"
-                        }, ...prev].slice(0, 10);
-                    });
-                }
-            }
-        } catch (e) {
-            console.warn(`Error parsing signature logs for ${signature}:`, e);
-        }
-    }, [connection, wallet]);
-
-    useEffect(() => {
-        if (!wallet || !wallet.publicKey) {
-            setEvents([]);
-            return;
-        }
-
-        const program = getProgram(connection, wallet);
-        const parsedSignatures = new Set<string>();
-
-        const pollEvents = async () => {
-            try {
-                const sigs = await connection.getSignaturesForAddress(program.programId, { limit: 6 }, "confirmed");
-                const newSigs = sigs.filter(s => !parsedSignatures.has(s.signature));
-                if (newSigs.length === 0) return;
-
-                for (const sigInfo of newSigs) {
-                    parsedSignatures.add(sigInfo.signature);
-                    processSignatureLogs(sigInfo.signature);
-                }
-            } catch (e) {
-                console.warn("Error polling events:", e);
-            }
-        };
-
-        pollEvents();
-        const intervalId = setInterval(pollEvents, 7000);
-
-        return () => {
-            clearInterval(intervalId);
-        };
-    }, [connection, wallet, processSignatureLogs]);
 
     function switchMode() {
         const nextMode: typeof mode = is2x ? "NORMAL" : "2X";
@@ -165,8 +71,6 @@ export default function HomePage() {
                 is2x ? "DOUBLE" : "NORMAL",
             );
 
-            processSignatureLogs(result.signature);
-
             setStatus("Waiting for randomness to be fulfilled...");
 
             let settled = false;
@@ -174,8 +78,7 @@ export default function HomePage() {
                 await new Promise((r) => setTimeout(r, SETTLE_POLL_INTERVAL));
 
                 try {
-                    const settleSig = await settleGame(connection, wallet, result.game);
-                    processSignatureLogs(settleSig);
+                    await settleGame(connection, wallet, result.game);
                     settled = true;
                     break;
                 } catch (settleErr) {
@@ -219,7 +122,6 @@ export default function HomePage() {
                 message = JSON.stringify(err);
             }
             
-            // Translate smart contract InsufficientTreasury error into a beautiful user-friendly prompt
             if (
                 message.includes("0x1773") || 
                 message.includes("6003") || 
@@ -315,48 +217,12 @@ export default function HomePage() {
                 </div>
             </section>
 
-            <section className="mt-6 w-full max-w-2xl rounded-2xl bg-black/25 px-5 py-4 text-center text-white border border-white/[0.05]">
+            <section className="mt-6 w-full max-w-2xl rounded-2xl bg-black/25 px-5 py-4 text-center text-white border border-white/5">
                 <p className="flex items-center justify-center gap-2 wrap-break-word text-base font-bold sm:text-lg">
                     {renderStatusIcon()}
                     {loading ? "Transaction pending..." : status}
                 </p>
                 {error && <p className="mt-2 wrap-break-word text-sm font-bold text-red-200">{error}</p>}
-            </section>
-
-            {/* Live Contract Events Panel */}
-            <section className="mt-6 w-full max-w-2xl rounded-2xl bg-black/40 border border-white/[0.06] p-5 text-white shadow-xl backdrop-blur-md">
-                <h3 className="text-lg font-bold text-[#f3c815] mb-3 flex items-center gap-2" style={{ fontFamily: "var(--font-display)" }}>
-                    <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                    </span>
-                    LIVE CONTRACT EVENTS
-                </h3>
-                <div className="space-y-2 max-h-[180px] overflow-y-auto pr-1">
-                    {events.length === 0 ? (
-                        <p className="text-sm font-medium text-white/40 italic text-center py-4">
-                            Waiting for contract events to emit...
-                        </p>
-                    ) : (
-                        events.map((ev) => {
-                            let badgeCls = "bg-blue-500/20 text-blue-300 border-blue-500/30";
-                            if (ev.type === "success") badgeCls = "bg-green-500/20 text-green-300 border-green-500/30";
-                            if (ev.type === "warning") badgeCls = "bg-red-500/20 text-red-300 border-red-500/30";
-
-                            return (
-                                <div key={ev.id} className="flex items-start justify-between gap-3 p-2.5 rounded-xl bg-white/[0.02] border border-white/[0.04] text-xs font-semibold animate-fade-in transition-all">
-                                    <div className="flex items-center gap-2">
-                                        <span className={`px-2 py-0.5 rounded-md border text-[10px] uppercase font-bold tracking-wider ${badgeCls}`}>
-                                            {ev.name}
-                                        </span>
-                                        <span className="text-white/80">{ev.details}</span>
-                                    </div>
-                                    <span className="text-white/40 text-[10px] shrink-0 font-medium">{ev.time}</span>
-                                </div>
-                            );
-                        })
-                    )}
-                </div>
             </section>
 
             <ConfirmModal
