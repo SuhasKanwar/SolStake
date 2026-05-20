@@ -7,7 +7,6 @@ import { BrowserRouter } from 'react-router-dom'
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react'
 import { PROVIDER_URL } from './lib/config.ts'
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui'
-import { PhantomWalletAdapter } from '@solana/wallet-adapter-wallets'
 import { Buffer } from 'buffer'
 
 const globalWithBuffer = globalThis as typeof globalThis & {
@@ -18,7 +17,7 @@ if (!globalWithBuffer.Buffer) {
   globalWithBuffer.Buffer = Buffer
 }
 
-const wallets = [new PhantomWalletAdapter()]
+const wallets: any[] = []
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

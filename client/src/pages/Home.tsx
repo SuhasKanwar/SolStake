@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
+import { useWallet, useConnection } from "@solana/wallet-adapter-react";
 import { Gem, Target, Loader2, Trophy, Frown, Timer, TriangleAlert } from "lucide-react";
 import { EventParser } from "@coral-xyz/anchor";
 import Header from "../components/Header";
@@ -27,7 +27,7 @@ interface EventLog {
 
 export default function HomePage() {
     const { connection } = useConnection();
-    const wallet = useAnchorWallet();
+    const wallet = useWallet();
     const [mode, setMode] = useState<"NORMAL" | "2X">("NORMAL");
     const [selectedStake, setSelectedStake] = useState<number>(STAKES[mode][0]);
     const [status, setStatus] = useState<string>("Connect Phantom to play.");
@@ -41,8 +41,59 @@ export default function HomePage() {
     const is2x = mode === "2X";
     const stakeOptions = STAKES[mode];
 
+    const processSignatureLogs = useCallback(async (signature: string) => {
+        if (!wallet || !wallet.publicKey) return;
+        try {
+            const program = getProgram(connection, wallet);
+            const tx = await connection.getParsedTransaction(signature, {
+                commitment: "confirmed",
+                maxSupportedTransactionVersion: 0,
+            });
+
+            if (!tx || !tx.meta || !tx.meta.logMessages) return;
+
+            const eventParser = new EventParser(program.programId, program.coder);
+            const parsedEvents = eventParser.parseLogs(tx.meta.logMessages);
+            let index = 0;
+            const time = new Date().toLocaleTimeString();
+
+            for (const parsedEvent of parsedEvents) {
+                const eventName = parsedEvent.name;
+                const eventData = parsedEvent.data as any;
+                const eventId = `${signature}-${index++}`;
+
+                if (eventName === "GameStarted") {
+                    setEvents((prev) => {
+                        if (prev.some((e) => e.id === eventId)) return prev;
+                        return [{
+                            id: eventId,
+                            name: "GameStarted",
+                            time,
+                            details: `Player ${eventData.player.toString().slice(0, 4)}... bet ${eventData.amount.toNumber() / 1e9} SOL on ${eventData.choice ? "HEADS" : "TAILS"}`,
+                            type: "info" as const
+                        }, ...prev].slice(0, 10);
+                    });
+                } else if (eventName === "GameSettled") {
+                    const payoutSOL = eventData.payout.toNumber() / 1e9;
+                    setEvents((prev) => {
+                        if (prev.some((e) => e.id === eventId)) return prev;
+                        return [{
+                            id: eventId,
+                            name: "GameSettled",
+                            time,
+                            details: `Player ${eventData.player.toString().slice(0, 4)}... ${eventData.won ? `WON ${payoutSOL} SOL! 🏆` : "LOST bet 😢"}`,
+                            type: (eventData.won ? "success" : "warning") as "success" | "warning"
+                        }, ...prev].slice(0, 10);
+                    });
+                }
+            }
+        } catch (e) {
+            console.warn(`Error parsing signature logs for ${signature}:`, e);
+        }
+    }, [connection, wallet]);
+
     useEffect(() => {
-        if (!wallet) {
+        if (!wallet || !wallet.publicKey) {
             setEvents([]);
             return;
         }
@@ -50,66 +101,15 @@ export default function HomePage() {
         const program = getProgram(connection, wallet);
         const parsedSignatures = new Set<string>();
 
-        const addEventLog = (id: string, name: string, time: string, details: string, type: "info" | "success" | "warning") => {
-            setEvents((prev) => {
-                if (prev.some((e) => e.id === id)) return prev;
-                return [{ id, name, time, details, type }, ...prev].slice(0, 10);
-            });
-        };
-
         const pollEvents = async () => {
             try {
                 const sigs = await connection.getSignaturesForAddress(program.programId, { limit: 6 }, "confirmed");
                 const newSigs = sigs.filter(s => !parsedSignatures.has(s.signature));
                 if (newSigs.length === 0) return;
 
-                const eventParser = new EventParser(program.programId, program.coder);
-
                 for (const sigInfo of newSigs) {
                     parsedSignatures.add(sigInfo.signature);
-
-                    try {
-                        const tx = await connection.getParsedTransaction(sigInfo.signature, {
-                            commitment: "confirmed",
-                            maxSupportedTransactionVersion: 0,
-                        });
-
-                        if (!tx || !tx.meta || !tx.meta.logMessages) continue;
-
-                        const parsedEvents = eventParser.parseLogs(tx.meta.logMessages);
-                        let index = 0;
-                        for (const parsedEvent of parsedEvents) {
-                            const eventName = parsedEvent.name;
-                            const eventData = parsedEvent.data as any;
-                            const eventId = `${sigInfo.signature}-${index++}`;
-
-                            const time = sigInfo.blockTime
-                                ? new Date(sigInfo.blockTime * 1000).toLocaleTimeString()
-                                : new Date().toLocaleTimeString();
-
-                            if (eventName === "GameStarted") {
-                                addEventLog(
-                                    eventId,
-                                    "GameStarted",
-                                    time,
-                                    `Player ${eventData.player.toString().slice(0, 4)}... bet ${eventData.amount.toNumber() / 1e9} SOL on ${eventData.choice ? "HEADS" : "TAILS"}`,
-                                    "info"
-                                );
-                            } else if (eventName === "GameSettled") {
-                                const payoutSOL = eventData.payout.toNumber() / 1e9;
-                                addEventLog(
-                                    eventId,
-                                    "GameSettled",
-                                    time,
-                                    `Player ${eventData.player.toString().slice(0, 4)}... ${eventData.won ? `WON ${payoutSOL} SOL! 🏆` : "LOST bet 😢"}`,
-                                    eventData.won ? "success" : "warning"
-                                );
-                            }
-                        }
-                    } catch (txErr) {
-                        console.warn(`Error parsing transaction ${sigInfo.signature}:`, txErr);
-                        parsedSignatures.delete(sigInfo.signature);
-                    }
+                    processSignatureLogs(sigInfo.signature);
                 }
             } catch (e) {
                 console.warn("Error polling events:", e);
@@ -122,7 +122,7 @@ export default function HomePage() {
         return () => {
             clearInterval(intervalId);
         };
-    }, [connection, wallet]);
+    }, [connection, wallet, processSignatureLogs]);
 
     function switchMode() {
         const nextMode: typeof mode = is2x ? "NORMAL" : "2X";
@@ -135,7 +135,7 @@ export default function HomePage() {
     }
 
     function requestFlip(choice: CoinChoice) {
-        if (!wallet) {
+        if (!wallet || !wallet.publicKey) {
             setError("Connect Phantom first.");
             return;
         }
@@ -149,7 +149,7 @@ export default function HomePage() {
     }
 
     const confirmFlip = useCallback(async () => {
-        if (!wallet || !pendingChoice || flipLockRef.current) return;
+        if (!wallet || !wallet.publicKey || !pendingChoice || flipLockRef.current) return;
         flipLockRef.current = true;
         setModalOpen(false);
         setLoading(true);
@@ -165,6 +165,8 @@ export default function HomePage() {
                 is2x ? "DOUBLE" : "NORMAL",
             );
 
+            processSignatureLogs(result.signature);
+
             setStatus("Waiting for randomness to be fulfilled...");
 
             let settled = false;
@@ -172,7 +174,8 @@ export default function HomePage() {
                 await new Promise((r) => setTimeout(r, SETTLE_POLL_INTERVAL));
 
                 try {
-                    await settleGame(connection, wallet, result.game);
+                    const settleSig = await settleGame(connection, wallet, result.game);
+                    processSignatureLogs(settleSig);
                     settled = true;
                     break;
                 } catch (settleErr) {
@@ -215,6 +218,16 @@ export default function HomePage() {
             } else if (typeof err === "object" && err !== null) {
                 message = JSON.stringify(err);
             }
+            
+            // Translate smart contract InsufficientTreasury error into a beautiful user-friendly prompt
+            if (
+                message.includes("0x1773") || 
+                message.includes("6003") || 
+                message.toLowerCase().includes("insufficient")
+            ) {
+                message = "The contract treasury has insufficient liquidity to cover this bet size/mode. Please try a smaller bet, switch to Normal mode, or fund the treasury above!";
+            }
+            
             setError(message);
             setStatus("Ready to flip again.");
         } finally {

@@ -9,27 +9,23 @@ export default function Header() {
     const [balance, setBalance] = useState<number | null>(null);
 
     useEffect(() => {
-        if (!connected || !publicKey) {
-            setBalance(null);
-            return;
-        }
-
         const updateBalance = async () => {
             try {
-                const bal = await connection.getBalance(publicKey, "confirmed");
-                setBalance(bal / LAMPORTS_PER_SOL);
+                if (publicKey) {
+                    const bal = await connection.getBalance(publicKey, "confirmed");
+                    setBalance(bal / LAMPORTS_PER_SOL);
+                } else {
+                    setBalance(null);
+                }
             } catch (e) {
-                console.error("Failed to fetch balance:", e);
+                console.error(e);
             }
         };
 
         updateBalance();
 
         const intervalId = setInterval(updateBalance, 4000);
-
-        return () => {
-            clearInterval(intervalId);
-        };
+        return () => clearInterval(intervalId);
     }, [connection, publicKey, connected]);
 
     return (
@@ -50,7 +46,6 @@ export default function Header() {
                     className="h-40 w-40 select-none"
                     draggable={false}
                 />
-
                 <div className="w-full rounded-3xl bg-(--primary-button-color) p-3 shadow-[0_28px_70px_-30px_var(--card-shadow)]">
                     <div className="w-full rounded-2xl bg-linear-to-b from-(--card-surface) to-(--card-surface-2) px-6 py-10 text-center">
                         <h1
@@ -60,7 +55,6 @@ export default function Header() {
                             <span className="text-(--darker-primary-button-color)">SOL</span>
                             <span className="text-white">STAKE</span>
                         </h1>
-
                         <p className="text-lg sm:text-xl font-bold text-(--text-muted)">
                             Flip Tokens for Double or Nothing!
                         </p>

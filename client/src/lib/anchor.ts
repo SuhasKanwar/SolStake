@@ -1,6 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
-import type { AnchorWallet } from "@solana/wallet-adapter-react";
 import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
+import { Buffer } from "buffer";
 import idl from "../idl/contract.json";
 import type { Contract } from "../idl/contract";
 import {
@@ -22,14 +22,14 @@ export const GAME_MODE = {
 export type GameMode = keyof typeof GAME_MODE;
 export type CoinChoice = "HEADS" | "TAILS";
 
-export function getProvider(connection: Connection, wallet: AnchorWallet) {
+export function getProvider(connection: Connection, wallet: any) {
     return new anchor.AnchorProvider(connection, wallet, {
         commitment: "confirmed",
         preflightCommitment: "confirmed",
     });
 }
 
-export function getProgram(connection: Connection, wallet: AnchorWallet) {
+export function getProgram(connection: Connection, wallet: any) {
     return new anchor.Program<Contract>(idl as Contract, getProvider(connection, wallet));
 }
 
@@ -95,33 +95,39 @@ async function confirm(provider: anchor.AnchorProvider, signature: string) {
     }
 }
 
-export async function fetchState(connection: Connection, wallet: AnchorWallet) {
+export async function fetchState(connection: Connection, wallet: any) {
     const program = getProgram(connection, wallet);
     return (program.account as any).state.fetchNullable(statePda());
 }
 
 async function sendAndConfirmTx(
     connection: Connection,
-    wallet: AnchorWallet,
+    wallet: any,
     builder: any,
 ) {
     const provider = getProvider(connection, wallet);
     const tx = await builder.transaction();
+    
     tx.feePayer = wallet.publicKey;
     const { blockhash } = await connection.getLatestBlockhash("confirmed");
     tx.recentBlockhash = blockhash;
 
-    const signedTx = await wallet.signTransaction(tx);
-    const signature = await connection.sendRawTransaction(signedTx.serialize(), {
-        skipPreflight: false,
-        preflightCommitment: "confirmed",
-    });
+    let signature: string;
+    if (wallet.sendTransaction) {
+        signature = await wallet.sendTransaction(tx, connection);
+    } else {
+        const signedTx = await wallet.signTransaction(tx);
+        signature = await connection.sendRawTransaction(signedTx.serialize(), {
+            skipPreflight: false,
+            preflightCommitment: "confirmed",
+        });
+    }
 
     await confirm(provider, signature);
     return signature;
 }
 
-export async function initializeTreasury(connection: Connection, wallet: AnchorWallet) {
+export async function initializeTreasury(connection: Connection, wallet: any) {
     const program = getProgram(connection, wallet);
     const builder = (program.methods as any)
         .initialize()
@@ -134,14 +140,14 @@ export async function initializeTreasury(connection: Connection, wallet: AnchorW
     return sendAndConfirmTx(connection, wallet, builder);
 }
 
-async function ensureInitialized(connection: Connection, wallet: AnchorWallet) {
+async function ensureInitialized(connection: Connection, wallet: any) {
     const state = await fetchState(connection, wallet);
     if (!state) {
         await initializeTreasury(connection, wallet);
     }
 }
 
-export async function depositTreasury(connection: Connection, wallet: AnchorWallet, solAmount: number) {
+export async function depositTreasury(connection: Connection, wallet: any, solAmount: number) {
     const program = getProgram(connection, wallet);
     const lamports = new anchor.BN(Math.round(solAmount * anchor.web3.LAMPORTS_PER_SOL));
     const builder = (program.methods as any)
@@ -156,7 +162,7 @@ export async function depositTreasury(connection: Connection, wallet: AnchorWall
 
 export async function startGame(
     connection: Connection,
-    wallet: AnchorWallet,
+    wallet: any,
     solAmount: number,
     choice: CoinChoice,
     mode: GameMode,
@@ -189,7 +195,7 @@ export async function startGame(
     return { signature, game, vrfRequest };
 }
 
-export async function settleGame(connection: Connection, wallet: AnchorWallet, game: PublicKey) {
+export async function settleGame(connection: Connection, wallet: any, game: PublicKey) {
     const program = getProgram(connection, wallet);
     const gameAccount = await (program.account as any).game.fetch(game);
     const builder = (program.methods as any)
@@ -205,7 +211,7 @@ export async function settleGame(connection: Connection, wallet: AnchorWallet, g
     return sendAndConfirmTx(connection, wallet, builder);
 }
 
-export async function fetchGame(connection: Connection, wallet: AnchorWallet, game: PublicKey) {
+export async function fetchGame(connection: Connection, wallet: any, game: PublicKey) {
     const program = getProgram(connection, wallet);
     return (program.account as any).game.fetch(game);
 }
